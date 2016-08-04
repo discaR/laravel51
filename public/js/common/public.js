@@ -202,11 +202,13 @@ Public.floatDiv = function(arg1,arg2){
  */
 Public.ajaxGet = function(url, params, callback, errCallback){
     $('.loading').show();
+
     $.ajax({
         type: "GET",
         url: Public.ROOT_URL + url,
         dataType: "json",
         data: params,
+        async: (typeof(params.async) == 'undefined') ? true : params.async,
         mode: "limit",
         complete: function(xMLHttpRequest, textStatus){
             $('.loading').hide();
@@ -215,7 +217,16 @@ Public.ajaxGet = function(url, params, callback, errCallback){
             callback(data);
         },
         error: function(err){
-            errCallback && errCallback(err);
+            $('.loading').hide();
+            var errData = {'code': 500, 'msg': '服务器内部错误'};
+            if(err.status == 422 && typeof(err.responseJSON) !== "undefined"){
+                errData = $.extend(true, {'code': 422, 'msg': '输入参数有误', 'errData': err.responseJSON });
+            }else if(err.status == 500 && typeof(err.responseJSON) !== "undefined"){
+                errData = err.responseJSON;
+            }else if(err.status == 403){
+                errData = {'code': 403, 'msg': '禁止访问'};
+            }
+            errCallback && errCallback(errData);
         }
     });
 };
@@ -233,6 +244,7 @@ Public.ajaxPost = function(url, params, callback, errCallback){
         type: "POST",
         url: Public.ROOT_URL + url,
         data: params,
+        async: (typeof(params.async) == 'undefined') ? true : params.async,
         dataType: "json",
         mode: "limit",
         success: function(data, status){
@@ -246,6 +258,8 @@ Public.ajaxPost = function(url, params, callback, errCallback){
                 errData = $.extend(true, {'code': 422, 'msg': '输入参数有误', 'errData': err.responseJSON });
             }else if(err.status == 500 && typeof(err.responseJSON) !== "undefined"){
                 errData = err.responseJSON;
+            }else if(err.status == 403){
+                errData = $.extend(true, {'code': 403, 'msg': '禁止访问'});
             }
             errCallback && errCallback(errData);
         }

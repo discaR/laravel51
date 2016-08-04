@@ -29,7 +29,7 @@ class Staff extends Model implements AuthenticatableContract, CanResetPasswordCo
         CacheTrait;
 
     protected $table = 'staff';
-    protected $fillable = ['username', 'email', 'password', 'name','deleted_at','mobile', 'dept_id','confirm_token','avatar', 'confirmed_at'];
+    protected $fillable = ['username', 'email', 'password', 'timezone', 'name','deleted_at','mobile', 'dept_id','confirm_token','avatar', 'confirmed_at'];
     protected $dates = ['deleted_at', 'confirmed_at'];
     protected $hidden = ['password', 'remember_token'];
     protected static $searchColumns = ['username', 'name'];
@@ -158,6 +158,7 @@ class Staff extends Model implements AuthenticatableContract, CanResetPasswordCo
                 ->join('permissions', 'permissions.id', '=', 'permission_role.permission_id')
                 ->where('staff.id', $this->id)
                 ->orderBy('sort', 'asc')
+                ->distinct('permissions.id')
                 ->get();
         return $permissions;
     }
